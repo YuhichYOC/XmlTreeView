@@ -182,6 +182,20 @@ namespace SAXWrapper {
             return ret;
         }
 
+        public NodeEntity CloneWithoutChildren() {
+            NodeEntity ret = new NodeEntity();
+
+            attrList.ForEach(v => {
+                ret.AddAttr(v.Clone());
+            });
+
+            ret.SetNodeName(nodeName);
+            ret.SetNodeID(nodeId);
+            ret.SetNodeValue(nodeValue);
+
+            return ret;
+        }
+
         #region -- Derivative Find --
 
         /// <summary>
