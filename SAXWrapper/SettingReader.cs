@@ -101,7 +101,6 @@ namespace SAXWrapper {
             newNode.SetNodeName(nodeName);
             newNode.SetNodeID(currentNodeId);
             currentNodeId++;
-            ParseAttributes(reader, newNode);
             if (currentNodeId == 1) {
                 node = newNode;
             } else {
@@ -110,6 +109,7 @@ namespace SAXWrapper {
             if (!reader.IsEmptyElement) {
                 depth++;
             }
+            ParseAttributes(reader, newNode);
         }
 
         private void ParseText(XmlReader reader) {
