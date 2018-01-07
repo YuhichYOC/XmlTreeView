@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{27D5D85F-8EB8-4F96-8E98-A8E4A9BCCA3B}</ProjectGuid>
+    <ProjectGuid>{461B4C1D-28EE-4DBF-8C26-E58AD51A8F34}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>XmlTreeView</RootNamespace>
-    <AssemblyName>XmlTreeView</AssemblyName>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OpenFile</RootNamespace>
+    <AssemblyName>OpenFile</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -58,11 +59,15 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
+    <Page Include="OFWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OFWindow.xaml.cs">
+      <DependentUpon>OFWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -85,9 +90,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Setting.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -97,28 +100,17 @@
       <Project>{b9335254-15e3-47c2-b44c-5e9240851586}</Project>
       <Name>Grid</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Logger\Logger.csproj">
-      <Project>{6e450f1f-df55-4653-805f-73f406cfb71b}</Project>
-      <Name>Logger</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenFile\OpenFile.csproj">
-      <Project>{461b4c1d-28ee-4dbf-8c26-e58ad51a8f34}</Project>
-      <Name>OpenFile</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SAXWrapper\SAXWrapper.csproj">
-      <Project>{4d90bb61-4a11-47b5-b7ca-f8cee5b6ef36}</Project>
-      <Name>SAXWrapper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Tree\Tree.csproj">
       <Project>{111e2b40-7f08-4018-ba13-56d04654cbcc}</Project>
       <Name>Tree</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Page Include="View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>

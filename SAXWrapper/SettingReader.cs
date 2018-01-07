@@ -81,11 +81,9 @@ namespace SAXWrapper {
                     ParseCDATA(reader);
                     ParseEndElement(reader);
                 }
-            }
-            catch (Exception) {
+            } catch (Exception) {
                 throw;
-            }
-            finally {
+            } finally {
                 if (reader != null) {
                     reader.Close();
                 }
@@ -106,8 +104,7 @@ namespace SAXWrapper {
             ParseAttributes(reader, newNode);
             if (currentNodeId == 1) {
                 node = newNode;
-            }
-            else {
+            } else {
                 node.FindTail(depth).AddChild(newNode);
             }
             if (!reader.IsEmptyElement) {

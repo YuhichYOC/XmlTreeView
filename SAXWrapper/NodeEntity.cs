@@ -117,8 +117,7 @@ namespace SAXWrapper {
         public bool NameEquals(string name) {
             if (nodeName.Equals(name)) {
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         }
@@ -325,8 +324,7 @@ namespace SAXWrapper {
         private NodeEntity FindTail(NodeEntity node, int depth) {
             if (depth == 1) {
                 return node;
-            }
-            else {
+            } else {
                 depth--;
                 int count = node.GetChildren().Count;
                 return FindTail(node.GetChildren()[count - 1], depth);

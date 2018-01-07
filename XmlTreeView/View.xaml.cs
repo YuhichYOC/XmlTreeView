@@ -1,4 +1,4 @@
-/*
+﻿/*
 *
 * View.cs
 *
@@ -18,20 +18,22 @@
 * limitations under the License.
 *
 */
-using System;
-using System.Windows;
-using System.Windows.Controls;
 
 using Grid;
 using OpenFile;
 using SAXWrapper;
+using System;
+using System.Windows;
+using System.Windows.Controls;
 using Tree;
 
 namespace XmlTreeView {
+
     /// <summary>
     /// View.xaml の相互作用ロジック
     /// </summary>
     public partial class View : Window {
+
         public View() {
             InitializeComponent();
 
@@ -58,8 +60,7 @@ namespace XmlTreeView {
         private void Menu(object sender, RoutedEventArgs e) {
             try {
                 OpenFile();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }
         }
@@ -76,6 +77,7 @@ namespace XmlTreeView {
         }
 
         private class OperatorEx : Operator {
+
             public void DisplayNode(NodeEntity arg) {
                 Blank();
                 foreach (AttributeEntity a in arg.GetAttrList()) {
@@ -93,7 +95,7 @@ namespace XmlTreeView {
         }
 
         private class XMLTreeEx : XMLTree {
-            OperatorEx grid;
+            private OperatorEx grid;
 
             public void SetGrid(OperatorEx arg) {
                 grid = arg;
@@ -110,8 +112,7 @@ namespace XmlTreeView {
                     XMLNode senderNode = senderObj.SelectedItem as XMLNode;
                     NodeEntity arg = senderNode.Tag as NodeEntity;
                     grid.DisplayNode(arg);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
                 }
             }

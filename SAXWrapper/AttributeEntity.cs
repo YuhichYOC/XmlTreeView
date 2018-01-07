@@ -55,8 +55,7 @@ namespace SAXWrapper {
         public bool NameEquals(string arg) {
             if (attrName.Equals(arg)) {
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         }
@@ -64,8 +63,7 @@ namespace SAXWrapper {
         public bool ValueEquals(string arg) {
             if (attrValue.Equals(arg)) {
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         }
