@@ -1,4 +1,4 @@
-﻿<Window
+<Window
   x:Class="OpenFile.OFWindow"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -32,13 +32,25 @@
         Grid.Row="0">
         <Grid.ColumnDefinitions>
           <ColumnDefinition
-            Width="4*" />
-          <ColumnDefinition
             Width="1*" />
+          <ColumnDefinition
+            Width="2*" />
         </Grid.ColumnDefinitions>
-        <TreeView
-          Grid.Column="0"
-          x:Name="tree" />
+        <Grid
+          Grid.Column="0">
+          <Grid.RowDefinitions>
+            <RowDefinition
+              Height="23" />
+            <RowDefinition
+              Height="1*" />
+          </Grid.RowDefinitions>
+          <ComboBox
+            Grid.Row="0"
+            x:Name="drive" />
+          <TreeView
+            Grid.Row="1"
+            x:Name="tree" />
+        </Grid>
         <GridSplitter
           Grid.Column="0"
           Width="5" />
