@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * NodeEntity.cs
 *
@@ -47,6 +47,16 @@ namespace SAXWrapper {
             return nodeId;
         }
 
+        private int depth;
+
+        public void SetDepth(int arg) {
+            depth = arg;
+        }
+
+        public int GetDepth() {
+            return depth;
+        }
+
         private string nodeValue;
 
         public void SetNodeValue(string arg) {
@@ -88,6 +98,8 @@ namespace SAXWrapper {
         #endregion -- プロパティ --
 
         public NodeEntity() {
+            nodeId = 0;
+            depth = 0;
             attrList = new List<AttributeEntity>();
             children = new List<NodeEntity>();
         }
@@ -192,6 +204,24 @@ namespace SAXWrapper {
             ret.SetNodeID(nodeId);
             ret.SetNodeValue(nodeValue);
 
+            return ret;
+        }
+
+        public override string ToString() {
+            string ret = string.Empty;
+            if (children.Count > 0) {
+                ret += ToStringStart() + "\r\n";
+                foreach (NodeEntity item in children) {
+                    ret += item.ToString() + "\r\n";
+                }
+                ret += ToStringEnd();
+            } else if (!nodeValue.Equals(string.Empty)) {
+                ret += ToStringStart() + "\r\n";
+                ret += Indent(1) + nodeValue + "\r\n";
+                ret += ToStringEnd();
+            } else {
+                ret += ToStringEmpty();
+            }
             return ret;
         }
 
@@ -329,6 +359,48 @@ namespace SAXWrapper {
                 int count = node.GetChildren().Count;
                 return FindTail(node.GetChildren()[count - 1], depth);
             }
+        }
+
+        private string ToStringStart() {
+            string ret = Indent(0);
+            if (attrList.Count > 0) {
+                ret += @"<" + nodeName + "\r\n";
+                foreach (AttributeEntity item in attrList) {
+                    ret += Indent(1) + item.ToString() + "\r\n";
+                }
+                ret += @">";
+            } else {
+                ret += @"<" + nodeName + @">";
+            }
+            return ret;
+        }
+
+        private string ToStringEnd() {
+            string ret = Indent(0);
+            ret += @"</" + nodeName + @">";
+            return ret;
+        }
+
+        private string ToStringEmpty() {
+            string ret = Indent(0);
+            if (attrList.Count > 0) {
+                ret += @"<" + nodeName + "\r\n";
+                foreach (AttributeEntity item in attrList) {
+                    ret += Indent(1) + item.ToString() + "\r\n";
+                }
+                ret += @"/>";
+            } else {
+                ret += @"<" + nodeName + @"/>";
+            }
+            return ret;
+        }
+
+        private string Indent(int plus) {
+            string ret = string.Empty;
+            for (int i = 0; i < (depth + plus) * 2; i++) {
+                ret += @" ";
+            }
+            return ret;
         }
 
         #endregion -- private --
