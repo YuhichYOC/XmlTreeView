@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * OFWindow.cs
 *
@@ -22,6 +22,7 @@
 using Grid;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Tree;
@@ -49,6 +50,7 @@ namespace OpenFile {
         private FileSystemTreeEx top;
 
         private void Prepare() {
+            ListDrives();
             gop = new OperatorEx();
             gop.Prepare(grid);
             gop.AddColumn(@"FileName", @"ファイル名");
@@ -58,8 +60,26 @@ namespace OpenFile {
             top.SetGrid(gop);
             top.Tree(@"C:\");
 
+            drive.SelectionChanged += DriveChanged;
             grid.SelectedCellsChanged += CellChanged;
             button.Click += ButtonClick;
+        }
+
+        private void ListDrives() {
+            Environment.GetLogicalDrives().ToList().ForEach(v => {
+                drive.Items.Add(v);
+            });
+        }
+
+        private void DriveChanged(object sender, SelectionChangedEventArgs e) {
+            try {
+                top = new FileSystemTreeEx();
+                top.Prepare(tree);
+                top.SetGrid(gop);
+                top.Tree((sender as ComboBox).SelectedValue.ToString());
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
         }
 
         private void CellChanged(object sender, SelectedCellsChangedEventArgs e) {
