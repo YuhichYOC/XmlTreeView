@@ -90,6 +90,7 @@ namespace XmlTreeView {
             w.SetNode((top.GetTree().Items[0] as XMLNode).Tag as NodeEntity);
             w.SetDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
             w.SetFileName(@"testout.xml");
+            w.Write();
         }
 
         private class OperatorEx : Operator {
