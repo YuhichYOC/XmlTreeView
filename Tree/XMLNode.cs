@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * XMLNode.cs
 *
@@ -56,7 +56,8 @@ namespace Tree {
         public void Tree() {
             Header = node.GetNodeName();
             Name = node.GetNodeName();
-            Tag = node.CloneWithoutChildren();
+            //Tag = node.CloneWithoutChildren();
+            Tag = node;
             foreach (NodeEntity item in node.GetChildren()) {
                 Tree(this, item);
             }
