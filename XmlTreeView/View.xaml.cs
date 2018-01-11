@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * View.cs
 *
@@ -55,6 +55,7 @@ namespace XmlTreeView {
             top.SetGrid(gop);
 
             menu.Click += Menu;
+            write.Click += Write;
         }
 
         private void Menu(object sender, RoutedEventArgs e) {
@@ -69,11 +70,26 @@ namespace XmlTreeView {
             OFWindow w = new OFWindow();
             w.ShowDialog();
             string path = w.GetPath();
-            SettingReader reader = new SettingReader();
+            XReader reader = new XReader();
             reader.SetDirectory(System.IO.Path.GetDirectoryName(path));
             reader.SetFileName(System.IO.Path.GetFileName(path));
             reader.Parse();
             top.Tree(reader.GetNode());
+        }
+
+        private void Write(object sender, RoutedEventArgs e) {
+            try {
+                WriteFile();
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
+        }
+
+        private void WriteFile() {
+            XWriter w = new XWriter();
+            w.SetNode((top.GetTree().Items[0] as XMLNode).Tag as NodeEntity);
+            w.SetDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+            w.SetFileName(@"testout.xml");
         }
 
         private class OperatorEx : Operator {
