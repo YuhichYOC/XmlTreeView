@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * SettingReader.cs
 *
@@ -40,7 +40,7 @@ namespace SAXWrapper {
             fileName = arg;
         }
 
-        private string GetFullPath() {
+        protected string GetFullPath() {
             if (string.IsNullOrEmpty(directory)) {
                 throw new ArgumentException(@"Directory is not assigned.");
             }
@@ -69,7 +69,7 @@ namespace SAXWrapper {
 
         #region -- メソッド --
 
-        public void Parse() {
+        public virtual void Parse() {
             System.IO.StreamReader sr = new System.IO.StreamReader(GetFullPath());
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.DtdProcessing = DtdProcessing.Parse;
@@ -93,13 +93,14 @@ namespace SAXWrapper {
             }
         }
 
-        private void ParseElement(XmlReader reader) {
+        protected void ParseElement(XmlReader reader) {
             if (reader.NodeType != XmlNodeType.Element) { return; }
 
             string nodeName = reader.Name;
             NodeEntity newNode = new NodeEntity();
             newNode.SetNodeName(nodeName);
             newNode.SetNodeID(currentNodeId);
+            newNode.SetDepth(depth);
             currentNodeId++;
             if (currentNodeId == 1) {
                 node = newNode;
@@ -112,7 +113,7 @@ namespace SAXWrapper {
             ParseAttributes(reader, newNode);
         }
 
-        private void ParseText(XmlReader reader) {
+        protected void ParseText(XmlReader reader) {
             if (reader.NodeType != XmlNodeType.Text) { return; }
 
             string value = reader.Value;
@@ -121,7 +122,7 @@ namespace SAXWrapper {
             }
         }
 
-        private void ParseCDATA(XmlReader reader) {
+        protected void ParseCDATA(XmlReader reader) {
             if (reader.NodeType != XmlNodeType.CDATA) { return; }
 
             string value = reader.Value;
@@ -130,7 +131,7 @@ namespace SAXWrapper {
             }
         }
 
-        private void ParseEndElement(XmlReader reader) {
+        protected void ParseEndElement(XmlReader reader) {
             if (reader.NodeType != XmlNodeType.EndElement) { return; }
             depth--;
         }
