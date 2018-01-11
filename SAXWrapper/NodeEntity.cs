@@ -215,7 +215,7 @@ namespace SAXWrapper {
                     ret += item.ToString() + "\r\n";
                 }
                 ret += ToStringEnd();
-            } else if (!nodeValue.Equals(string.Empty)) {
+            } else if (nodeValue != null && !nodeValue.Equals(string.Empty)) {
                 ret += ToStringStart() + "\r\n";
                 ret += Indent(1) + nodeValue + "\r\n";
                 ret += ToStringEnd();
@@ -368,7 +368,7 @@ namespace SAXWrapper {
                 foreach (AttributeEntity item in attrList) {
                     ret += Indent(1) + item.ToString() + "\r\n";
                 }
-                ret += @">";
+                ret += Indent(1) + @">";
             } else {
                 ret += @"<" + nodeName + @">";
             }
@@ -388,7 +388,7 @@ namespace SAXWrapper {
                 foreach (AttributeEntity item in attrList) {
                     ret += Indent(1) + item.ToString() + "\r\n";
                 }
-                ret += @"/>";
+                ret += Indent(1) + @"/>";
             } else {
                 ret += @"<" + nodeName + @"/>";
             }
