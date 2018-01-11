@@ -1,4 +1,4 @@
-﻿/*
+/*
 *
 * AttributeEntity.cs
 *
@@ -73,6 +73,10 @@ namespace SAXWrapper {
             ret.SetAttrName(attrName);
             ret.SetAttrValue(attrValue);
             return ret;
+        }
+
+        public override string ToString() {
+            return attrName + @"=" + @"""" + attrValue + @"""";
         }
 
         #endregion -- メソッド --
