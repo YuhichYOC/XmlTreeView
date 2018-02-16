@@ -53,15 +53,141 @@ namespace Tree {
 
         public void Prepare(TreeView arg) {
             tree = arg;
+            PrepareMouseGesture(arg);
+            PrepareContextMenu(arg);
         }
 
-        public void Tree(NodeEntity arg) {
+        public virtual void Tree(NodeEntity arg) {
+            if (tree.Items != null) {
+                tree.Items.Clear();
+            }
             root = new XMLNode();
             root.SetNode(arg);
+            root.SetParent(this);
             root.Tree();
             tree.Items.Add(root);
         }
 
+        public void Refresh(NodeEntity arg) {
+            TreeViewItem oldRoot = root;
+            Tree(arg);
+            XMLNode oldNode = oldRoot as XMLNode;
+            XMLNode newNode = root as XMLNode;
+            Refresh(oldNode, newNode);
+        }
+
         #endregion -- Public --
+
+        #region -- Private --
+
+        private void Refresh(XMLNode oldNode, XMLNode newNode) {
+            if (oldNode.IsExpanded) {
+                newNode.IsExpanded = true;
+                int count = oldNode.Items.Count;
+                if (newNode.Items.Count == 0)
+                    return;
+
+                for (int i = 0; i < count; i++) {
+                    XMLNode oldChild = oldNode.Items[i] as XMLNode;
+                    if (newNode.Items.Count < i)
+                        return;
+
+                    XMLNode newChild = newNode.Items[i] as XMLNode;
+                    if (oldChild != null && newChild != null) {
+                        Refresh(oldChild, newChild);
+                    }
+                }
+            }
+        }
+
+        #endregion -- Private --
+
+        #region -- Mouse Gesture --
+
+        private void PrepareMouseGesture(TreeView arg) {
+            arg.AllowDrop = true;
+            arg.PreviewMouseLeftButtonDown += OnPreviewLeftDown;
+            arg.MouseMove += OnMove;
+        }
+
+        private System.Windows.Point p;
+
+        private void OnPreviewLeftDown(object sender, System.Windows.Input.MouseButtonEventArgs e) {
+            try {
+                p = e.GetPosition(tree);
+            } catch (System.Exception ex) {
+                System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
+        }
+
+        private void OnMove(object sender, System.Windows.Input.MouseEventArgs e) {
+            try {
+                if (e.LeftButton == System.Windows.Input.MouseButtonState.Released) { return; }
+                System.Windows.Point senderPos = e.GetPosition(tree);
+                double moveX = p.X - senderPos.X;
+                double moveY = p.Y - senderPos.Y;
+                if (moveX < 0)
+                    moveX = moveX * -1;
+                if (moveY < 0)
+                    moveY = moveY * -1;
+                if (moveY / System.Math.Sin(System.Math.Atan(moveY / moveX)) > 10) {
+                    System.Windows.DragDrop.DoDragDrop(tree, tree.SelectedItem, System.Windows.DragDropEffects.Move);
+                }
+            } catch (System.Exception ex) {
+                System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
+        }
+
+        public void MoveByEachNode(XMLNode dropNode, XMLNode catchNode) {
+            Refresh(root.MoveByEachNode(dropNode.Tag as NodeEntity, catchNode.Tag as NodeEntity));
+        }
+
+        #endregion -- Mouse Gesture --
+
+        #region -- Context Menu --
+
+        private void PrepareContextMenu(TreeView arg) {
+            ContextMenu m = new ContextMenu();
+
+            MenuItem add1 = new MenuItem();
+            add1.Name = @"Context_Upward";
+            add1.Header = @"Upward";
+            add1.Click += Upward_Click;
+            m.Items.Add(add1);
+
+            MenuItem add2 = new MenuItem();
+            add2.Name = @"Context_Downward";
+            add2.Header = @"Downward";
+            add2.Click += Downward_Click;
+            m.Items.Add(add2);
+
+            arg.ContextMenu = m;
+        }
+
+        private void Upward_Click(object sender, System.Windows.RoutedEventArgs e) {
+            try {
+                XMLNode n = tree.SelectedItem as XMLNode;
+                if (n == null)
+                    return;
+
+                Refresh(root.UpwardByID((n.Tag as NodeEntity).GetNodeID()));
+            } catch (System.Exception ex) {
+                System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
+        }
+
+        private void Downward_Click(object sender, System.Windows.RoutedEventArgs e) {
+            try {
+                XMLNode n = tree.SelectedItem as XMLNode;
+                if (n == null)
+                    return;
+
+                Refresh(root.DownwardByID((n.Tag as NodeEntity).GetNodeID()));
+            } catch (System.Exception ex) {
+                System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+            }
+        }
+
+        #endregion -- Context Menu --
     }
 }

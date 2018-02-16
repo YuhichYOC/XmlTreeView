@@ -31,6 +31,10 @@ namespace Grid {
 
         private string title;
 
+        private double width;
+
+        private bool star;
+
         #endregion -- Fields --
 
         #region -- Getter, Setter --
@@ -47,14 +51,29 @@ namespace Grid {
             title = arg;
         }
 
+        public void SetWidth(double arg, bool star) {
+            width = arg;
+            this.star = star;
+        }
+
         #endregion -- Getter, Setter --
 
         #region -- Public --
+
+        public ColumnDefinition() {
+            width = 1.0D;
+            star = true;
+        }
 
         public void AddColumn(DataGrid grid) {
             DataGridTextColumn add = new DataGridTextColumn();
             add.Header = title;
             add.Binding = new System.Windows.Data.Binding(bindName);
+            if (star) {
+                add.Width = new DataGridLength(width, DataGridLengthUnitType.Star);
+            } else {
+                add.Width = new DataGridLength(width, DataGridLengthUnitType.Pixel);
+            }
             grid.Columns.Add(add);
         }
 

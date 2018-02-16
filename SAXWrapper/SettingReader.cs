@@ -101,6 +101,7 @@ namespace SAXWrapper {
             newNode.SetNodeName(nodeName);
             newNode.SetNodeID(currentNodeId);
             newNode.SetDepth(depth);
+            newNode.Comment(false);
             currentNodeId++;
             if (currentNodeId == 1) {
                 node = newNode;
@@ -118,7 +119,7 @@ namespace SAXWrapper {
 
             string value = reader.Value;
             if (!string.IsNullOrEmpty(value)) {
-                node.FindTail(depth).SetNodeValue(value);
+                node.FindTail(depth).SetNodeValue(value.Trim());
             }
         }
 
@@ -127,7 +128,7 @@ namespace SAXWrapper {
 
             string value = reader.Value;
             if (!string.IsNullOrEmpty(value)) {
-                node.FindTail(depth).SetNodeValue(value);
+                node.FindTail(depth).SetNodeValue(value.Trim());
             }
         }
 

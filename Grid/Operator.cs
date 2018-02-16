@@ -46,7 +46,7 @@ namespace Grid {
 
         #region -- Public --
 
-        public void Prepare(DataGrid arg) {
+        public virtual void Prepare(DataGrid arg) {
             grid = arg;
         }
 
@@ -60,9 +60,26 @@ namespace Grid {
             columns.Add(add);
         }
 
+        public void AddColumn(string bindName, string title, double width, bool star) {
+            if (columns == null) {
+                columns = new List<ColumnDefinition>();
+            }
+            ColumnDefinition add = new ColumnDefinition();
+            add.SetBindName(bindName);
+            add.SetTitle(title);
+            add.SetWidth(width, star);
+            columns.Add(add);
+        }
+
         public void CreateColumns() {
             grid.CanUserAddRows = false;
             grid.Columns.Clear();
+            DataGridTextColumn index = new DataGridTextColumn();
+            index.Header = string.Empty;
+            index.Binding = new System.Windows.Data.Binding(@"index");
+            index.Width = new DataGridLength(0.0D, DataGridLengthUnitType.Pixel);
+            index.Visibility = System.Windows.Visibility.Hidden;
+            grid.Columns.Add(index);
             foreach (ColumnDefinition item in columns) {
                 item.AddColumn(grid);
             }
@@ -77,16 +94,52 @@ namespace Grid {
             grid.ItemsSource = rows;
         }
 
+        public object Value(string bindName) {
+            object ret = null;
+            (grid.CurrentItem as RowEntity).TryGetMember(bindName, out ret);
+            return ret;
+        }
+
         #endregion -- Public --
 
         #region -- Protected --
 
         protected void AddRow(RowEntity arg) {
+            arg.TrySetMember(@"index", LastIndex() + 1);
             rows.Add(arg);
+        }
+
+        protected void RemoveRow(int index) {
+            ObservableCollection<RowEntity> newRows = new ObservableCollection<RowEntity>();
+            foreach (RowEntity r in rows) {
+                object i = null;
+                r.TryGetMember(@"index", out i);
+                if (i != null) {
+                    if (index != (int)i) {
+                        newRows.Add(r.Clone());
+                    }
+                }
+            }
+            rows = newRows;
+            Refresh();
         }
 
         protected ColumnDefinition Column(int i) {
             return columns[i];
+        }
+
+        protected int LastIndex() {
+            int ret = -1;
+            foreach (RowEntity r in rows) {
+                object i = null;
+                r.TryGetMember(@"index", out i);
+                if (i != null) {
+                    if (ret < (int)i) {
+                        ret = (int)i;
+                    }
+                }
+            }
+            return ret;
         }
 
         #endregion -- Protected --

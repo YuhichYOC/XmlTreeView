@@ -1,6 +1,6 @@
-/*
+﻿/*
 *
-* OFWindow.cs
+* SFWindow.cs
 *
 * Copyright 2017 Yuichi Yoshii
 *     吉井雄一 @ 吉井産業  you.65535.kir@gmail.com
@@ -27,19 +27,19 @@ using System.Windows;
 using System.Windows.Controls;
 using Tree;
 
-namespace OpenFile {
+namespace SaveFile {
 
     /// <summary>
-    /// OFWindow.xaml の相互作用ロジック
+    /// SFWindow.xaml の相互作用ロジック
     /// </summary>
-    public partial class OFWindow : Window {
+    public partial class SFWindow : Window {
         private string path;
 
         public string GetPath() {
             return path;
         }
 
-        public OFWindow() {
+        public SFWindow() {
             InitializeComponent();
 
             Prepare();

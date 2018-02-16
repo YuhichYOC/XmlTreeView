@@ -44,6 +44,8 @@
     <Compile Include="NodeEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingReader.cs" />
+    <Compile Include="XReader.cs" />
+    <Compile Include="XWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LICENSE" />

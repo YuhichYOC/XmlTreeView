@@ -67,6 +67,16 @@ namespace SAXWrapper {
             return nodeValue;
         }
 
+        private bool isComment;
+
+        public void Comment(bool arg) {
+            isComment = arg;
+        }
+
+        public bool IsComment() {
+            return isComment;
+        }
+
         private List<AttributeEntity> attrList;
 
         public void SetAttrList(List<AttributeEntity> arg) {
@@ -95,13 +105,46 @@ namespace SAXWrapper {
             children.Add(arg);
         }
 
+        private NodeEntity writerSetting;
+
+        private bool newLineAfterOpeningBracket;
+
+        private bool newLineAfterClosingBracket;
+
+        private bool newLineAfterAttributes;
+
+        private bool newLineAfterNodeValue;
+
+        private int indentSize;
+
+        public void SetWriterSetting(NodeEntity arg) {
+            writerSetting = arg;
+            newLineAfterOpeningBracket = NewLineAfterOpeningBracket();
+            newLineAfterClosingBracket = NewLineAfterClosingBracket();
+            newLineAfterAttributes = NewLineAfterAttributes();
+            newLineAfterNodeValue = NewLineAfterNodeValue();
+            indentSize = IndentSize();
+            if (children.Count > 0) {
+                children.ForEach(c => {
+                    c.SetWriterSetting(arg);
+                });
+            }
+        }
+
         #endregion -- プロパティ --
 
         public NodeEntity() {
             nodeId = 0;
             depth = 0;
+            isComment = false;
             attrList = new List<AttributeEntity>();
             children = new List<NodeEntity>();
+            writerSetting = null;
+            newLineAfterOpeningBracket = true;
+            newLineAfterClosingBracket = true;
+            newLineAfterAttributes = true;
+            newLineAfterNodeValue = true;
+            indentSize = 2;
         }
 
         #region -- メソッド --
@@ -124,6 +167,17 @@ namespace SAXWrapper {
                 }
             });
             return ret;
+        }
+
+        public void RemoveAttrByName(string name) {
+            if (AttrExists(name)) {
+                for (int i = 0; i < attrList.Count; i++) {
+                    if (attrList[i].GetAttrName().Equals(name)) {
+                        attrList.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
         }
 
         public bool NameEquals(string name) {
@@ -202,22 +256,35 @@ namespace SAXWrapper {
 
             ret.SetNodeName(nodeName);
             ret.SetNodeID(nodeId);
+            ret.SetDepth(depth);
             ret.SetNodeValue(nodeValue);
+            ret.Comment(isComment);
 
             return ret;
         }
 
         public override string ToString() {
             string ret = string.Empty;
-            if (children.Count > 0) {
-                ret += ToStringStart() + "\r\n";
+            if (IsComment()) {
+                ret += ToStringComment();
+            } else if (children.Count > 0) {
+                ret += ToStringStart();
+                if (newLineAfterClosingBracket) {
+                    ret += "\r\n";
+                }
                 foreach (NodeEntity item in children) {
                     ret += item.ToString() + "\r\n";
                 }
                 ret += ToStringEnd();
             } else if (nodeValue != null && !nodeValue.Equals(string.Empty)) {
-                ret += ToStringStart() + "\r\n";
-                ret += Indent(1) + nodeValue + "\r\n";
+                ret += ToStringStart();
+                if (newLineAfterClosingBracket) {
+                    ret += "\r\n";
+                }
+                ret += Indent(1) + nodeValue;
+                if (newLineAfterNodeValue) {
+                    ret += "\r\n";
+                }
                 ret += ToStringEnd();
             } else {
                 ret += ToStringEmpty();
@@ -364,9 +431,15 @@ namespace SAXWrapper {
         private string ToStringStart() {
             string ret = Indent(0);
             if (attrList.Count > 0) {
-                ret += @"<" + nodeName + "\r\n";
+                ret += @"<" + nodeName;
+                if (newLineAfterOpeningBracket) {
+                    ret += "\r\n";
+                }
                 foreach (AttributeEntity item in attrList) {
-                    ret += Indent(1) + item.ToString() + "\r\n";
+                    ret += Indent(1) + item.ToString();
+                    if (newLineAfterAttributes) {
+                        ret += "\r\n";
+                    }
                 }
                 ret += Indent(1) + @">";
             } else {
@@ -384,9 +457,15 @@ namespace SAXWrapper {
         private string ToStringEmpty() {
             string ret = Indent(0);
             if (attrList.Count > 0) {
-                ret += @"<" + nodeName + "\r\n";
+                ret += @"<" + nodeName;
+                if (newLineAfterOpeningBracket) {
+                    ret += "\r\n";
+                }
                 foreach (AttributeEntity item in attrList) {
-                    ret += Indent(1) + item.ToString() + "\r\n";
+                    ret += Indent(1) + item.ToString();
+                    if (newLineAfterAttributes) {
+                        ret += "\r\n";
+                    }
                 }
                 ret += Indent(1) + @"/>";
             } else {
@@ -395,13 +474,136 @@ namespace SAXWrapper {
             return ret;
         }
 
+        private string ToStringComment() {
+            string ret = Indent(0);
+            ret += @"<!-- " + nodeValue + @" -->";
+            return ret;
+        }
+
         private string Indent(int plus) {
             string ret = string.Empty;
-            for (int i = 0; i < (depth + plus) * 2; i++) {
+            for (int i = 0; i < (depth + plus) * indentSize; i++) {
                 ret += @" ";
             }
             return ret;
         }
+
+        #region -- Writer Setting --
+
+        private bool NewLineAfterOpeningBracket() {
+            if (writerSetting == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterClosingBracket() {
+            if (writerSetting == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterAttributes() {
+            if (writerSetting == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterNodeValue() {
+            if (writerSetting == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private int IndentSize() {
+            if (writerSetting == null) {
+                return 2;
+            }
+            if (writerSetting.Find(@"Writer") == null) {
+                return 2;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
+                return 2;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize") == null) {
+                return 2;
+            }
+            int ret = 0;
+            if (int.TryParse(writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize").GetNodeValue(), out ret)) {
+                return ret;
+            } else {
+                return 2;
+            }
+        }
+
+        #endregion -- Writer Setting --
 
         #endregion -- private --
     }

@@ -26,7 +26,6 @@ using System.Text;
 namespace SAXWrapper {
 
     public class XWriter {
-
         private NodeEntity node;
 
         public void SetNode(NodeEntity arg) {
@@ -43,6 +42,14 @@ namespace SAXWrapper {
 
         public void SetFileName(string arg) {
             fileName = arg;
+        }
+
+        public void SetWriterSetting(string arg) {
+            XReader r = new XReader();
+            r.SetDirectory(Path.GetDirectoryName(arg));
+            r.SetFileName(Path.GetFileName(arg));
+            r.Parse();
+            node.SetWriterSetting(r.GetNode());
         }
 
         public void Write() {

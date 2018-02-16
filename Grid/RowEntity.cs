@@ -57,6 +57,14 @@ namespace Grid {
             return true;
         }
 
+        public RowEntity Clone() {
+            RowEntity ret = new RowEntity();
+            foreach (KeyValuePair<string, object> item in data) {
+                ret.TrySetMember(item.Key, item.Value);
+            }
+            return ret;
+        }
+
         #endregion -- Public --
     }
 }

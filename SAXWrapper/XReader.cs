@@ -24,9 +24,52 @@ using System.Xml;
 
 namespace SAXWrapper {
 
-    public class XReader : SettingReader {
+    public class XReader {
 
-        public override void Parse() {
+        #region -- プロパティ --
+
+        private string directory;
+
+        public void SetDirectory(string arg) {
+            directory = arg;
+        }
+
+        private string fileName;
+
+        public void SetFileName(string arg) {
+            fileName = arg;
+        }
+
+        protected string GetFullPath() {
+            if (string.IsNullOrEmpty(directory)) {
+                throw new ArgumentException(@"Directory is not assigned.");
+            }
+            if (string.IsNullOrEmpty(fileName)) {
+                throw new ArgumentException(@"File is not assigned.");
+            }
+            return directory + @"\" + fileName;
+        }
+
+        private NodeEntity node;
+
+        public NodeEntity GetNode() {
+            return node;
+        }
+
+        private int depth;
+
+        private int currentNodeId;
+
+        #endregion -- プロパティ --
+
+        public XReader() {
+            depth = 0;
+            currentNodeId = 0;
+        }
+
+        #region -- メソッド --
+
+        public void Parse() {
             System.IO.StreamReader sr = new System.IO.StreamReader(GetFullPath());
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.DtdProcessing = DtdProcessing.Parse;
@@ -51,9 +94,84 @@ namespace SAXWrapper {
             }
         }
 
+        protected void ParseElement(XmlReader reader) {
+            if (reader.NodeType != XmlNodeType.Element) { return; }
+
+            string nodeName = reader.Name;
+            NodeEntity newNode = new NodeEntity();
+            newNode.SetNodeName(nodeName);
+            newNode.SetNodeID(currentNodeId);
+            newNode.SetDepth(depth);
+            newNode.Comment(false);
+            currentNodeId++;
+            if (currentNodeId == 1) {
+                node = newNode;
+            } else {
+                node.FindTail(depth).AddChild(newNode);
+            }
+            if (!reader.IsEmptyElement) {
+                depth++;
+            }
+            ParseAttributes(reader, newNode);
+        }
+
+        protected void ParseText(XmlReader reader) {
+            if (reader.NodeType != XmlNodeType.Text) { return; }
+
+            string value = reader.Value;
+            if (!string.IsNullOrEmpty(value)) {
+                node.FindTail(depth).SetNodeValue(value.Trim());
+            }
+        }
+
+        protected void ParseCDATA(XmlReader reader) {
+            if (reader.NodeType != XmlNodeType.CDATA) { return; }
+
+            string value = reader.Value;
+            if (!string.IsNullOrEmpty(value)) {
+                node.FindTail(depth).SetNodeValue(value.Trim());
+            }
+        }
+
+        protected void ParseEndElement(XmlReader reader) {
+            if (reader.NodeType != XmlNodeType.EndElement) { return; }
+            depth--;
+        }
+
         protected void ParseComment(XmlReader reader) {
             if (reader.NodeType != XmlNodeType.Comment) { return; }
 
+            NodeEntity newNode = new NodeEntity();
+            newNode.SetNodeName(@"Comment");
+            newNode.SetNodeID(currentNodeId);
+            newNode.SetDepth(depth);
+            newNode.SetNodeValue(reader.Value.Trim());
+            newNode.Comment(true);
+            currentNodeId++;
+            if (currentNodeId == 1) {
+                node = newNode;
+            } else {
+                node.FindTail(depth).AddChild(newNode);
+            }
         }
+
+        #endregion -- メソッド --
+
+        #region -- private --
+
+        private void ParseAttributes(XmlReader reader, NodeEntity currentNode) {
+            int iLoopCount = reader.AttributeCount;
+            for (int i = 0; i < iLoopCount; i++) {
+                reader.MoveToAttribute(i);
+                string attrName = reader.LocalName;
+                string attrValue = reader.GetAttribute(attrName);
+                AttributeEntity attr = new AttributeEntity();
+                attr.SetAttrName(attrName);
+                attr.SetAttrValue(attrValue);
+                currentNode.AddAttr(attr);
+            }
+        }
+
+        #endregion -- private --
     }
 }
