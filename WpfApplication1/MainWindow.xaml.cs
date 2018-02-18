@@ -32,7 +32,7 @@ namespace WpfApplication1 {
             InitializeComponent();
 
             XmlTreeView.View v = new XmlTreeView.View();
-            v.Show();
+            v.ShowDialog();
         }
     }
 }

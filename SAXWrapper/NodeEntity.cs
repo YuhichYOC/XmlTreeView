@@ -25,85 +25,25 @@ namespace SAXWrapper {
 
     public class NodeEntity {
 
-        #region -- プロパティ --
+        #region -- Private Fields --
 
         private string nodeName;
 
-        public void SetNodeName(string arg) {
-            nodeName = arg;
-        }
-
-        public string GetNodeName() {
-            return nodeName;
-        }
-
         private int nodeId;
-
-        public void SetNodeID(int arg) {
-            nodeId = arg;
-        }
-
-        public int GetNodeID() {
-            return nodeId;
-        }
 
         private int depth;
 
-        public void SetDepth(int arg) {
-            depth = arg;
-        }
-
-        public int GetDepth() {
-            return depth;
-        }
-
         private string nodeValue;
-
-        public void SetNodeValue(string arg) {
-            nodeValue = arg;
-        }
-
-        public string GetNodeValue() {
-            return nodeValue;
-        }
 
         private bool isComment;
 
-        public void Comment(bool arg) {
-            isComment = arg;
-        }
-
-        public bool IsComment() {
-            return isComment;
-        }
-
         private List<AttributeEntity> attrList;
 
-        public void SetAttrList(List<AttributeEntity> arg) {
-            attrList = arg;
-        }
-
-        public List<AttributeEntity> GetAttrList() {
-            return attrList;
-        }
-
-        public void AddAttr(AttributeEntity arg) {
-            attrList.Add(arg);
-        }
+        private NodeEntity parent;
 
         private List<NodeEntity> children;
 
-        public void SetChildren(List<NodeEntity> arg) {
-            children = arg;
-        }
-
-        public List<NodeEntity> GetChildren() {
-            return children;
-        }
-
-        public void AddChild(NodeEntity arg) {
-            children.Add(arg);
-        }
+        #region -- Writer --
 
         private NodeEntity writerSetting;
 
@@ -116,6 +56,58 @@ namespace SAXWrapper {
         private bool newLineAfterNodeValue;
 
         private int indentSize;
+
+        #endregion -- Writer --
+
+        #endregion -- Private Fields --
+
+        #region -- Setter --
+
+        public void SetNodeName(string arg) {
+            nodeName = arg;
+        }
+
+        public void SetNodeID(int arg) {
+            nodeId = arg;
+        }
+
+        public void SetDepth(int arg) {
+            depth = arg;
+        }
+
+        public void SetNodeValue(string arg) {
+            nodeValue = arg;
+        }
+
+        public void Comment(bool arg) {
+            isComment = arg;
+        }
+
+        public void SetAttrList(List<AttributeEntity> arg) {
+            attrList = arg;
+        }
+
+        public void AddAttr(AttributeEntity arg) {
+            attrList.Add(arg);
+        }
+
+        public void SetParent(NodeEntity arg) {
+            parent = arg;
+        }
+
+        public void SetChildren(List<NodeEntity> arg) {
+            arg.ForEach(c => {
+                c.SetParent(this);
+            });
+            children = arg;
+        }
+
+        public void AddChild(NodeEntity arg) {
+            arg.SetParent(this);
+            children.Add(arg);
+        }
+
+        #region -- Writer --
 
         public void SetWriterSetting(NodeEntity arg) {
             writerSetting = arg;
@@ -131,13 +123,203 @@ namespace SAXWrapper {
             }
         }
 
-        #endregion -- プロパティ --
+        private bool NewLineAfterOpeningBracket() {
+            if (writerSetting == null
+                || writerSetting.Find(@"Writer") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterClosingBracket() {
+            if (writerSetting == null
+                || writerSetting.Find(@"Writer") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterAttributes() {
+            if (writerSetting == null
+                || writerSetting.Find(@"Writer") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private bool NewLineAfterNodeValue() {
+            if (writerSetting == null
+                || writerSetting.Find(@"Writer") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue") == null) {
+                return true;
+            }
+            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue").GetNodeValue().Equals(@"YES")) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private int IndentSize() {
+            if (writerSetting == null
+                || writerSetting.Find(@"Writer") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting") == null
+                || writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize") == null) {
+                return 2;
+            }
+            if (int.TryParse(writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize").GetNodeValue(), out int ret)) {
+                return ret;
+            } else {
+                return 2;
+            }
+        }
+
+        #endregion -- Writer --
+
+        #endregion -- Setter --
+
+        #region -- Getter --
+
+        public string GetNodeName() {
+            return nodeName;
+        }
+
+        public int GetNodeID() {
+            return nodeId;
+        }
+
+        public bool IDExists(int arg) {
+            NodeEntity r = Root();
+            if (r.GetNodeID() == arg) {
+                return true;
+            }
+            return IDExists(r, arg);
+        }
+
+        private bool IDExists(NodeEntity node, int id) {
+            bool ret = false;
+            foreach (NodeEntity c in node.GetChildren()) {
+                if (c.GetNodeID() == id) {
+                    ret = true;
+                }
+                ret = IDExists(c, id);
+                if (ret == true) {
+                    return true;
+                }
+            }
+            return ret;
+        }
+
+        public int TailID() {
+            NodeEntity r = Root();
+            return TailID(r);
+        }
+
+        private int TailID(NodeEntity arg) {
+            int ret = arg.GetNodeID();
+            int count = arg.GetChildren().Count;
+            if (count > 0) {
+                ret = TailID(arg.GetChildren()[count - 1]);
+            }
+            return ret;
+        }
+
+        public int GetDepth() {
+            return depth;
+        }
+
+        public int TailDepth() {
+            NodeEntity r = Root();
+            return TailDepth(r);
+        }
+
+        private int TailDepth(NodeEntity arg) {
+            int ret = arg.GetDepth();
+            foreach (NodeEntity c in arg.GetChildren()) {
+                int cd = TailDepth(c);
+                if (ret < cd) {
+                    ret = cd;
+                }
+            }
+            return ret;
+        }
+
+        public string GetNodeValue() {
+            return nodeValue;
+        }
+
+        public bool IsComment() {
+            return isComment;
+        }
+
+        public List<AttributeEntity> GetAttrList() {
+            return attrList;
+        }
+
+        public bool AttrExists(string name) {
+            foreach (AttributeEntity a in attrList) {
+                if (a.NameEquals(name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public string AttrByName(string name) {
+            foreach (AttributeEntity a in attrList) {
+                if (a.NameEquals(name)) {
+                    return a.GetAttrValue();
+                }
+            }
+            return string.Empty;
+        }
+
+        public NodeEntity GetParent() {
+            return parent;
+        }
+
+        public NodeEntity Root() {
+            if (parent == null) {
+                return this;
+            }
+            return parent.Root();
+        }
+
+        public List<NodeEntity> GetChildren() {
+            return children;
+        }
+
+        #endregion -- Getter --
 
         public NodeEntity() {
             nodeId = 0;
             depth = 0;
             isComment = false;
             attrList = new List<AttributeEntity>();
+            parent = null;
             children = new List<NodeEntity>();
             writerSetting = null;
             newLineAfterOpeningBracket = true;
@@ -147,27 +329,7 @@ namespace SAXWrapper {
             indentSize = 2;
         }
 
-        #region -- メソッド --
-
-        public bool AttrExists(string name) {
-            bool ret = false;
-            attrList.ForEach(v => {
-                if (v.NameEquals(name)) {
-                    ret = true;
-                }
-            });
-            return ret;
-        }
-
-        public string AttrByName(string name) {
-            string ret = @"";
-            attrList.ForEach(v => {
-                if (v.NameEquals(name)) {
-                    ret = v.GetAttrValue();
-                }
-            });
-            return ret;
-        }
+        #region -- Public Methods --
 
         public void RemoveAttrByName(string name) {
             if (AttrExists(name)) {
@@ -188,48 +350,6 @@ namespace SAXWrapper {
             }
         }
 
-        public NodeEntity Find(string tagName) {
-            NodeEntity ret = null;
-            children.ForEach(v => {
-                if (v.NameEquals(tagName)) {
-                    ret = v;
-                }
-            });
-            return ret;
-        }
-
-        public NodeEntity Find(string tagName, string attrName, string attrValue) {
-            NodeEntity ret = null;
-            children.ForEach(v => {
-                if (v.NameEquals(tagName) && v.AttrExists(attrName) && v.AttrByName(attrName).Equals(attrValue)) {
-                    ret = v;
-                }
-            });
-            return ret;
-        }
-
-        public NodeEntity Find(string tagName, string attr1Name, string attr1Value, string attr2Name, string attr2Value) {
-            NodeEntity ret = null;
-            children.ForEach(v => {
-                if (v.NameEquals(tagName)
-                 && v.AttrExists(attr1Name)
-                 && v.AttrByName(attr1Name).Equals(attr1Value)
-                 && v.AttrExists(attr2Name)
-                 && v.AttrByName(attr2Name).Equals(attr2Value)) {
-                    ret = v;
-                }
-            });
-            return ret;
-        }
-
-        public NodeEntity FindTail(int depth) {
-            NodeEntity ret = this;
-            if (depth == 1) { return ret; }
-            depth--;
-            int count = ret.GetChildren().Count;
-            return FindTail(ret.GetChildren()[count - 1], depth);
-        }
-
         public NodeEntity Clone() {
             NodeEntity ret = new NodeEntity();
 
@@ -242,7 +362,9 @@ namespace SAXWrapper {
 
             ret.SetNodeName(nodeName);
             ret.SetNodeID(nodeId);
+            ret.SetDepth(depth);
             ret.SetNodeValue(nodeValue);
+            ret.Comment(isComment);
 
             return ret;
         }
@@ -263,33 +385,134 @@ namespace SAXWrapper {
             return ret;
         }
 
-        public override string ToString() {
-            string ret = string.Empty;
-            if (IsComment()) {
-                ret += ToStringComment();
-            } else if (children.Count > 0) {
-                ret += ToStringStart();
-                if (newLineAfterClosingBracket) {
-                    ret += "\r\n";
-                }
-                foreach (NodeEntity item in children) {
-                    ret += item.ToString() + "\r\n";
-                }
-                ret += ToStringEnd();
-            } else if (nodeValue != null && !nodeValue.Equals(string.Empty)) {
-                ret += ToStringStart();
-                if (newLineAfterClosingBracket) {
-                    ret += "\r\n";
-                }
-                ret += Indent(1) + nodeValue;
-                if (newLineAfterNodeValue) {
-                    ret += "\r\n";
-                }
-                ret += ToStringEnd();
-            } else {
-                ret += ToStringEmpty();
+        public void MoveUpByID(int arg) {
+            NodeEntity p = FindByID(arg).GetParent();
+            if (p == null) {
+                return;
             }
-            return ret;
+            for (int i = 0; i < p.GetChildren().Count; i++) {
+                if (p.GetChildren()[i].GetNodeID() == arg) {
+                    if (i > 0) {
+                        NodeEntity n = p.GetChildren()[i].Clone();
+                        p.GetChildren().RemoveAt(i);
+                        p.GetChildren().Insert(i - 1, n);
+                        Refresh();
+                        return;
+                    }
+                }
+            }
+        }
+
+        public void MoveDownByID(int arg) {
+            NodeEntity p = FindByID(arg).GetParent();
+            if (p == null) {
+                return;
+            }
+            for (int i = 0; i < p.GetChildren().Count; i++) {
+                if (p.GetChildren()[i].GetNodeID() == arg) {
+                    if (i < p.GetChildren().Count - 1) {
+                        NodeEntity n = p.GetChildren()[i].Clone();
+                        p.GetChildren().RemoveAt(i);
+                        p.GetChildren().Insert(i + 1, n);
+                        Refresh();
+                        return;
+                    }
+                }
+            }
+        }
+
+        public void MoveByID(int moveFrom, int moveTo) {
+            if (moveFrom == moveTo) {
+                return;
+            }
+            NodeEntity nf = FindByID(moveFrom);
+            if (nf == null) {
+                return;
+            }
+            NodeEntity pf = nf.GetParent();
+            if (pf == null) {
+                return;
+            }
+            NodeEntity pt = FindByID(moveTo).GetParent();
+            if (pt == null) {
+                return;
+            }
+            nf = nf.Clone();
+            for (int j = 0; j < pf.GetChildren().Count; j++) {
+                if (pf.GetChildren()[j].GetNodeID() == moveFrom) {
+                    pf.GetChildren().RemoveAt(j);
+                    break;
+                }
+            }
+            for (int i = 0; i < pt.GetChildren().Count; i++) {
+                if (pt.GetChildren()[i].GetNodeID() == moveTo) {
+                    pt.GetChildren().Insert(i, nf);
+                    break;
+                }
+            }
+            Refresh();
+        }
+
+        public void RemoveByID(int arg) {
+            NodeEntity p = FindByID(arg).GetParent();
+            if (p == null) {
+                return;
+            }
+            for (int i = 0; i < p.GetChildren().Count; i++) {
+                if (p.GetChildren()[i].GetNodeID() == arg) {
+                    p.GetChildren().RemoveAt(i);
+                    Refresh();
+                    return;
+                }
+            }
+        }
+
+        #region -- Find --
+
+        public NodeEntity Find(string tagName) {
+            foreach (NodeEntity c in children) {
+                if (c.NameEquals(tagName)) {
+                    return c;
+                }
+            }
+            return null;
+        }
+
+        public NodeEntity Find(string tagName, string attrName, string attrValue) {
+            foreach (NodeEntity c in children) {
+                if (c.NameEquals(tagName) && c.AttrExists(attrName) && c.AttrByName(attrName).Equals(attrValue)) {
+                    return c;
+                }
+            }
+            return null;
+        }
+
+        public NodeEntity Find(string tagName, string attr1Name, string attr1Value, string attr2Name, string attr2Value) {
+            foreach (NodeEntity c in children) {
+                if (c.NameEquals(tagName)
+                    && c.AttrExists(attr1Name)
+                    && c.AttrByName(attr1Name).Equals(attr1Value)
+                    && c.AttrExists(attr2Name)
+                    && c.AttrByName(attr2Name).Equals(attr2Value)) {
+                    return c;
+                }
+            }
+            return null;
+        }
+
+        public NodeEntity FindByID(int id) {
+            NodeEntity r = Root();
+            return FindByID(r, id);
+        }
+
+        public NodeEntity FindTail(int depth) {
+            NodeEntity ret = this;
+            if (depth == 1) {
+                return ret;
+            }
+            depth--;
+            int count = ret.GetChildren().Count;
+            return FindTail(ret.GetChildren()[count - 1], depth);
         }
 
         #region -- Derivative Find --
@@ -414,9 +637,76 @@ namespace SAXWrapper {
 
         #endregion -- Derivative Find --
 
-        #endregion -- メソッド --
+        #endregion -- Find --
 
-        #region -- private --
+        #region -- Writer --
+
+        public override string ToString() {
+            string ret = string.Empty;
+            if (IsComment()) {
+                ret += ToStringComment();
+            } else if (children.Count > 0) {
+                ret += ToStringStart();
+                if (newLineAfterClosingBracket) {
+                    ret += "\r\n";
+                }
+                foreach (NodeEntity item in children) {
+                    ret += item.ToString() + "\r\n";
+                }
+                ret += ToStringEnd();
+            } else if (nodeValue != null && !nodeValue.Equals(string.Empty)) {
+                ret += ToStringStart();
+                if (newLineAfterClosingBracket) {
+                    ret += "\r\n";
+                }
+                ret += Indent(1) + nodeValue;
+                if (newLineAfterNodeValue) {
+                    ret += "\r\n";
+                }
+                ret += ToStringEnd();
+            } else {
+                ret += ToStringEmpty();
+            }
+            return ret;
+        }
+
+        #endregion -- Writer --
+
+        #region -- Refresh --
+
+        private int newDepth;
+
+        private int newNodeId;
+
+        public void Refresh() {
+            NodeEntity r = Root();
+            newDepth = 0;
+            newNodeId = 0;
+            r.SetDepth(newDepth);
+            r.SetNodeID(newNodeId);
+            Refresh(r);
+        }
+
+        #endregion -- Refresh --
+
+        #endregion -- Public Methods --
+
+        #region -- Private Methods --
+
+        #region -- Find --
+
+        private NodeEntity FindByID(NodeEntity node, int id) {
+            foreach (NodeEntity c in node.GetChildren()) {
+                if (c.GetNodeID() == id) {
+                    return c;
+                }
+                NodeEntity ret = FindByID(c, id);
+                if (ret != null) {
+                    return ret;
+                }
+            }
+            return null;
+        }
 
         private NodeEntity FindTail(NodeEntity node, int depth) {
             if (depth == 1) {
@@ -427,6 +717,10 @@ namespace SAXWrapper {
                 return FindTail(node.GetChildren()[count - 1], depth);
             }
         }
+
+        #endregion -- Find --
+
+        #region -- Writer --
 
         private string ToStringStart() {
             string ret = Indent(0);
@@ -488,123 +782,25 @@ namespace SAXWrapper {
             return ret;
         }
 
-        #region -- Writer Setting --
+        #endregion -- Writer --
 
-        private bool NewLineAfterOpeningBracket() {
-            if (writerSetting == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"OpeningBracket").GetNodeValue().Equals(@"YES")) {
-                return true;
-            } else {
-                return false;
+        #region -- Refresh --
+
+        private void Refresh(NodeEntity node) {
+            newDepth++;
+            foreach (NodeEntity c in node.GetChildren()) {
+                c.SetDepth(newDepth);
+                newNodeId++;
+                c.SetNodeID(newNodeId);
+                if (c.GetChildren().Count > 0) {
+                    Refresh(c);
+                    newDepth--;
+                }
             }
         }
 
-        private bool NewLineAfterClosingBracket() {
-            if (writerSetting == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"ClosingBracket").GetNodeValue().Equals(@"YES")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+        #endregion -- Refresh --
 
-        private bool NewLineAfterAttributes() {
-            if (writerSetting == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterAttrElements").GetNodeValue().Equals(@"YES")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        private bool NewLineAfterNodeValue() {
-            if (writerSetting == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue") == null) {
-                return true;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"NewLine").Find(@"AfterNodeValue").GetNodeValue().Equals(@"YES")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        private int IndentSize() {
-            if (writerSetting == null) {
-                return 2;
-            }
-            if (writerSetting.Find(@"Writer") == null) {
-                return 2;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting") == null) {
-                return 2;
-            }
-            if (writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize") == null) {
-                return 2;
-            }
-            int ret = 0;
-            if (int.TryParse(writerSetting.Find(@"Writer").Find(@"Setting").Find(@"IndentSize").GetNodeValue(), out ret)) {
-                return ret;
-            } else {
-                return 2;
-            }
-        }
-
-        #endregion -- Writer Setting --
-
-        #endregion -- private --
+        #endregion -- Private Methods --
     }
 }

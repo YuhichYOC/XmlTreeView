@@ -26,21 +26,23 @@ namespace Tree {
 
     public class XMLTree {
 
-        #region -- Fields --
+        #region -- Private Fields --
 
         private TreeView tree;
 
         private XMLNode root;
 
-        #endregion -- Fields --
+        #endregion -- Private Fields --
 
-        #region -- Getter, Setter --
+
+
+        #region -- Getter --
 
         public TreeView GetTree() {
             return tree;
         }
 
-        #endregion -- Getter, Setter --
+        #endregion -- Getter --
 
         #region -- Constructor --
 
@@ -49,7 +51,7 @@ namespace Tree {
 
         #endregion -- Constructor --
 
-        #region -- Public --
+        #region -- Public Methods --
 
         public void Prepare(TreeView arg) {
             tree = arg;
@@ -63,7 +65,7 @@ namespace Tree {
             }
             root = new XMLNode();
             root.SetNode(arg);
-            root.SetParent(this);
+            root.SetTree(this);
             root.Tree();
             tree.Items.Add(root);
         }
@@ -76,21 +78,23 @@ namespace Tree {
             Refresh(oldNode, newNode);
         }
 
-        #endregion -- Public --
+        #endregion -- Public Methods --
 
-        #region -- Private --
+        #region -- Private Methods --
 
         private void Refresh(XMLNode oldNode, XMLNode newNode) {
             if (oldNode.IsExpanded) {
                 newNode.IsExpanded = true;
                 int count = oldNode.Items.Count;
-                if (newNode.Items.Count == 0)
+                if (newNode.Items.Count == 0) {
                     return;
+                }
 
                 for (int i = 0; i < count; i++) {
                     XMLNode oldChild = oldNode.Items[i] as XMLNode;
-                    if (newNode.Items.Count < i)
+                    if (newNode.Items.Count < i) {
                         return;
+                    }
 
                     XMLNode newChild = newNode.Items[i] as XMLNode;
                     if (oldChild != null && newChild != null) {
@@ -100,7 +104,7 @@ namespace Tree {
             }
         }
 
-        #endregion -- Private --
+        #endregion -- Private Methods --
 
         #region -- Mouse Gesture --
 
@@ -122,24 +126,25 @@ namespace Tree {
 
         private void OnMove(object sender, System.Windows.Input.MouseEventArgs e) {
             try {
-                if (e.LeftButton == System.Windows.Input.MouseButtonState.Released) { return; }
+                if (e.LeftButton == System.Windows.Input.MouseButtonState.Released) {
+                    return;
+                }
+
                 System.Windows.Point senderPos = e.GetPosition(tree);
                 double moveX = p.X - senderPos.X;
                 double moveY = p.Y - senderPos.Y;
-                if (moveX < 0)
+                if (moveX < 0) {
                     moveX = moveX * -1;
-                if (moveY < 0)
+                }
+                if (moveY < 0) {
                     moveY = moveY * -1;
+                }
                 if (moveY / System.Math.Sin(System.Math.Atan(moveY / moveX)) > 10) {
                     System.Windows.DragDrop.DoDragDrop(tree, tree.SelectedItem, System.Windows.DragDropEffects.Move);
                 }
             } catch (System.Exception ex) {
                 System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }
-        }
-
-        public void MoveByEachNode(XMLNode dropNode, XMLNode catchNode) {
-            Refresh(root.MoveByEachNode(dropNode.Tag as NodeEntity, catchNode.Tag as NodeEntity));
         }
 
         #endregion -- Mouse Gesture --
@@ -167,10 +172,13 @@ namespace Tree {
         private void Upward_Click(object sender, System.Windows.RoutedEventArgs e) {
             try {
                 XMLNode n = tree.SelectedItem as XMLNode;
-                if (n == null)
+                if (n == null) {
                     return;
+                }
 
-                Refresh(root.UpwardByID((n.Tag as NodeEntity).GetNodeID()));
+                NodeEntity newRoot = root.GetNode().Clone();
+                newRoot.MoveUpByID(n.GetNode().GetNodeID());
+                Refresh(newRoot);
             } catch (System.Exception ex) {
                 System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }
@@ -179,10 +187,13 @@ namespace Tree {
         private void Downward_Click(object sender, System.Windows.RoutedEventArgs e) {
             try {
                 XMLNode n = tree.SelectedItem as XMLNode;
-                if (n == null)
+                if (n == null) {
                     return;
+                }
 
-                Refresh(root.DownwardByID((n.Tag as NodeEntity).GetNodeID()));
+                NodeEntity newRoot = root.GetNode().Clone();
+                newRoot.MoveDownByID(n.GetNode().GetNodeID());
+                Refresh(newRoot);
             } catch (System.Exception ex) {
                 System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }

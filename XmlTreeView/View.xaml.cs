@@ -35,30 +35,21 @@ namespace XmlTreeView {
     /// </summary>
     public partial class View : Window {
 
+        #region -- Private Fields --
+
+        private OperatorEx gop;
+
+        private XMLTreeEx top;
+
+        #endregion -- Private Fields --
+
         public View() {
             InitializeComponent();
 
             Prepare();
         }
 
-        private OperatorEx gop;
-
-        private XMLTreeEx top;
-
-        private void Prepare() {
-            gop = new OperatorEx();
-            gop.Prepare(grid);
-            top = new XMLTreeEx();
-            top.Prepare(tree);
-            top.SetGrid(gop);
-
-            DropHere.AllowDrop = true;
-            DropHere.PreviewDragOver += OnPreviewDragOver;
-            DropHere.Drop += OnDrop;
-
-            menu.Click += Menu;
-            write.Click += Write;
-        }
+        #region -- Events --
 
         private void OnDrop(object sender, DragEventArgs e) {
             try {
@@ -100,7 +91,24 @@ namespace XmlTreeView {
             }
         }
 
-        #region -- Private --
+        #endregion -- Events --
+
+        #region -- Private Methods --
+
+        private void Prepare() {
+            gop = new OperatorEx();
+            gop.Prepare(grid);
+            top = new XMLTreeEx();
+            top.Prepare(tree);
+            top.SetGrid(gop);
+
+            DropHere.AllowDrop = true;
+            DropHere.PreviewDragOver += OnPreviewDragOver;
+            DropHere.Drop += OnDrop;
+
+            menu.Click += Menu;
+            write.Click += Write;
+        }
 
         private void OpenFile() {
             OFWindow w = new OFWindow();
@@ -129,19 +137,26 @@ namespace XmlTreeView {
             sw.ShowDialog();
             string setting = sw.GetPath();
             XWriter writer = new XWriter();
-            writer.SetNode((top.GetTree().Items[0] as XMLNode).Restore());
+            writer.SetNode((top.GetTree().Items[0] as XMLNode).GetNode());
             writer.SetDirectory(System.IO.Path.GetDirectoryName(path));
             writer.SetFileName(System.IO.Path.GetFileName(path));
-            writer.SetWriterSetting(setting);
+            if (!string.IsNullOrEmpty(setting)) {
+                writer.SetWriterSetting(setting);
+            }
             writer.Write();
         }
 
-        #endregion -- Private --
+        #endregion -- Private Methods --
 
         #region -- Private Class : OperatorEx --
 
         private class OperatorEx : Operator {
+
+            #region -- Private Fields --
+
             private NodeEntity current = null;
+
+            #endregion -- Private Fields --
 
             public override void Prepare(DataGrid arg) {
                 arg.CellEditEnding += EndEdit;
@@ -153,13 +168,19 @@ namespace XmlTreeView {
                 CreateColumns();
             }
 
+            #region -- Events --
+
             private void EndEdit(object sender, DataGridCellEditEndingEventArgs e) {
-                if (current == null) { return; }
-                if (e.EditAction == DataGridEditAction.Cancel) { return; }
-                if (e.Column.DisplayIndex == 0) { return; }
+                if (current == null)
+                    return;
+                if (e.EditAction == DataGridEditAction.Cancel)
+                    return;
+                if (e.Column.DisplayIndex == 0)
+                    return;
                 object title = Value(@"Name");
                 object v = Value(@"Value");
-                if (title == null || v == null) { return; }
+                if (title == null || v == null)
+                    return;
                 if ((title as string).Equals(@"Node Value")) {
                     current.SetNodeValue(v as string);
                     return;
@@ -171,6 +192,26 @@ namespace XmlTreeView {
                     }
                 }
             }
+
+            private void Add_Click(object sender, RoutedEventArgs e) {
+                try {
+                    AddNewAttribute();
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+                }
+            }
+
+            private void Delete_Click(object sender, RoutedEventArgs e) {
+                try {
+                    DeleteAttribute();
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+                }
+            }
+
+            #endregion -- Events --
+
+            #region -- Public Methods --
 
             public void DisplayNode(NodeEntity arg) {
                 Blank();
@@ -187,6 +228,10 @@ namespace XmlTreeView {
                 AddRow(nodeValue);
                 Refresh();
             }
+
+            #endregion -- Public Methods --
+
+            #region -- Private Methods --
 
             private void PrepareContextMenu(DataGrid arg) {
                 ContextMenu m = new ContextMenu();
@@ -206,14 +251,6 @@ namespace XmlTreeView {
                 arg.ContextMenu = m;
             }
 
-            private void Add_Click(object sender, RoutedEventArgs e) {
-                try {
-                    AddNewAttribute();
-                } catch (Exception ex) {
-                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
-                }
-            }
-
             private void AddNewAttribute() {
                 NewAttribute n = new NewAttribute();
                 n.ShowDialog();
@@ -229,20 +266,14 @@ namespace XmlTreeView {
                 }
             }
 
-            private void Delete_Click(object sender, RoutedEventArgs e) {
-                try {
-                    DeleteAttribute();
-                } catch (Exception ex) {
-                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
-                }
-            }
-
             private void DeleteAttribute() {
                 object attrName = Value(@"Name");
                 if (attrName == null) { return; }
                 current.RemoveAttrByName(attrName as string);
                 RemoveRow((int)Value(@"index"));
             }
+
+            #endregion -- Private Methods --
         }
 
         #endregion -- Private Class : OperatorEx --
@@ -250,29 +281,48 @@ namespace XmlTreeView {
         #region -- Private Class : XMLTreeEx --
 
         private class XMLTreeEx : XMLTree {
+
+            #region -- Private Fields --
+
             private OperatorEx grid;
+
+            #endregion -- Private Fields --
+
+            #region -- Setter --
 
             public void SetGrid(OperatorEx arg) {
                 grid = arg;
             }
+
+            #endregion -- Setter --
+
+            #region -- Events --
+
+            private void OnSelect(object sender, RoutedEventArgs e) {
+                try {
+                    TreeView senderObj = sender as TreeView;
+                    XMLNode senderNode = senderObj.SelectedItem as XMLNode;
+                    if (senderNode == null)
+                        return;
+                    NodeEntity arg = senderNode.GetNode();
+                    if (arg == null)
+                        return;
+                    grid.DisplayNode(arg);
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+                }
+            }
+
+            #endregion -- Events --
+
+            #region -- Public Methods --
 
             public override void Tree(NodeEntity arg) {
                 base.Tree(arg);
                 GetTree().SelectedItemChanged += OnSelect;
             }
 
-            private void OnSelect(object sender, RoutedEventArgs e) {
-                try {
-                    TreeView senderObj = sender as TreeView;
-                    XMLNode senderNode = senderObj.SelectedItem as XMLNode;
-                    if (senderNode == null) { return; }
-                    NodeEntity arg = senderNode.Tag as NodeEntity;
-                    if (arg == null) { return; }
-                    grid.DisplayNode(arg);
-                } catch (Exception ex) {
-                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
-                }
-            }
+            #endregion -- Public Methods --
         }
 
         #endregion -- Private Class : XMLTreeEx --

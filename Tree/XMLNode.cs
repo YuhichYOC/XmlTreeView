@@ -26,91 +26,81 @@ namespace Tree {
 
     public class XMLNode : TreeViewItem {
 
-        #region -- Fields --
+        #region -- Private Fields --
 
         private NodeEntity node;
 
-        private XMLTree parent;
+        private XMLNode parent;
 
-        #endregion -- Fields --
+        private XMLTree tree;
 
-        #region -- Getter, Setter --
+        #endregion -- Private Fields --
+
+        #region -- Setter --
 
         public void SetNode(NodeEntity arg) {
             node = arg;
         }
 
+        public void SetParent(XMLNode arg) {
+            parent = arg;
+        }
+
+        public void SetTree(XMLTree arg) {
+            tree = arg;
+        }
+
+        #endregion -- Setter --
+
+        #region -- Getter --
+
         public NodeEntity GetNode() {
             return node;
         }
 
-        public void SetParent(XMLTree arg) {
-            parent = arg;
+        public XMLNode Root() {
+            if (parent == null) {
+                return this;
+            }
+            return parent.Root();
         }
 
-        #endregion -- Getter, Setter --
+        #endregion -- Getter --
 
         #region -- Constructor --
 
         public XMLNode() {
+            node = null;
+            parent = null;
+            tree = null;
         }
 
         #endregion -- Constructor --
 
-        #region -- Public --
+        #region -- Public Methods --
 
         public void Tree() {
+            if (Items != null) {
+                Items.Clear();
+            }
             Header = node.GetNodeName();
-            Name = node.GetNodeName();
-            Tag = node.CloneWithoutChildren();
+            Name = @"Node" + node.GetNodeID().ToString();
             PrepareMouseGesture();
             foreach (NodeEntity item in node.GetChildren()) {
                 Tree(this, item);
             }
         }
 
-        public NodeEntity Restore() {
-            NodeEntity ret = Tag as NodeEntity;
-            foreach (XMLNode item in Items) {
-                ret.AddChild(Restore(item));
-            }
-            return ret;
-        }
+        #endregion -- Public Methods --
 
-        public NodeEntity UpwardByID(int id) {
-            NodeEntity ret = Restore();
-            NodeEntity parent = FindParentByID(ret, id);
-            if (parent == null) { return ret; }
-            parent = UpwardByID(parent, id);
-            return ret;
-        }
-
-        public NodeEntity DownwardByID(int id) {
-            NodeEntity ret = Restore();
-            NodeEntity parent = FindParentByID(ret, id);
-            if (parent == null) { return ret; }
-            parent = DownwardByID(parent, id);
-            return ret;
-        }
-
-        public NodeEntity MoveByEachNode(NodeEntity dropNode, NodeEntity catchNode) {
-            NodeEntity ret = Restore();
-            NodeEntity parent = FindParentByID(ret, catchNode.GetNodeID());
-            if (parent == null || parent != FindParentByID(ret, dropNode.GetNodeID())) { return ret; }
-            parent = MoveByEachNode(parent, dropNode, catchNode);
-            return ret;
-        }
-
-        #endregion -- Public --
-
-        #region -- Private --
+        #region -- Private Methods --
 
         private void Tree(XMLNode arg1, NodeEntity arg2) {
             XMLNode add = new XMLNode();
             add.Header = arg2.GetNodeName();
-            add.Name = arg2.GetNodeName();
-            add.Tag = arg2.CloneWithoutChildren();
-            add.SetParent(parent);
+            add.Name = @"Node" + arg2.GetNodeID().ToString();
+            add.SetNode(arg2);
+            add.SetTree(tree);
             add.PrepareMouseGesture();
             foreach (NodeEntity item in arg2.GetChildren()) {
                 Tree(add, item);
@@ -118,79 +108,7 @@ namespace Tree {
             arg1.Items.Add(add);
         }
 
-        private NodeEntity Restore(XMLNode arg) {
-            NodeEntity ret = arg.Tag as NodeEntity;
-            foreach (XMLNode item in arg.Items) {
-                ret.AddChild(Restore(item));
-            }
-            return ret;
-        }
-
-        private NodeEntity FindParentByID(NodeEntity arg, int id) {
-            NodeEntity ret = null;
-            foreach (NodeEntity child in arg.GetChildren()) {
-                if (child.GetNodeID() == id) {
-                    ret = arg;
-                } else {
-                    ret = FindParentByID(child, id);
-                }
-                if (ret != null) {
-                    break;
-                }
-            }
-            return ret;
-        }
-
-        private NodeEntity UpwardByID(NodeEntity arg, int id) {
-            int count = arg.GetChildren().Count;
-            int index = 0;
-            for (index = 0; index < count; index++) {
-                if (arg.GetChildren()[index].GetNodeID() == id) {
-                    break;
-                }
-            }
-            if (index == 0) {
-                return arg;
-            } else {
-                NodeEntity up = arg.GetChildren()[index];
-                arg.GetChildren().RemoveAt(index);
-                arg.GetChildren().Insert(index - 1, up);
-                return arg;
-            }
-        }
-
-        private NodeEntity DownwardByID(NodeEntity arg, int id) {
-            int count = arg.GetChildren().Count;
-            int index = 0;
-            for (index = 0; index < count; index++) {
-                if (arg.GetChildren()[index].GetNodeID() == id) {
-                    break;
-                }
-            }
-            if (index == count - 1) {
-                return arg;
-            } else {
-                NodeEntity down = arg.GetChildren()[index];
-                arg.GetChildren().RemoveAt(index);
-                arg.GetChildren().Insert(index + 1, down);
-                return arg;
-            }
-        }
-
-        private NodeEntity MoveByEachNode(NodeEntity parent, NodeEntity dropNode, NodeEntity catchNode) {
-            int count = parent.GetChildren().Count;
-            int index = 0;
-            for (index = 0; index < count; index++) {
-                if (parent.GetChildren()[index].GetNodeID() == catchNode.GetNodeID()) {
-                    break;
-                }
-            }
-            parent.GetChildren().Remove(dropNode);
-            parent.GetChildren().Insert(index, dropNode);
-            return parent;
-        }
-
-        #endregion -- Private --
+        #endregion -- Private Methods --
 
         #region -- Mouse Gesture --
 
@@ -205,10 +123,12 @@ namespace Tree {
                 e.Effects = System.Windows.DragDropEffects.None;
                 XMLNode dropNode = e.Data.GetData(typeof(XMLNode)) as XMLNode;
                 XMLNode catchNode = sender as XMLNode;
-                if (dropNode == catchNode)
+                if (dropNode == catchNode) {
                     return;
+                }
 
-                parent.MoveByEachNode(dropNode, catchNode);
+                node.MoveByID(dropNode.GetNode().GetNodeID(), catchNode.GetNode().GetNodeID());
+                tree.Refresh(node.Root());
             } catch (System.Exception ex) {
                 System.Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }

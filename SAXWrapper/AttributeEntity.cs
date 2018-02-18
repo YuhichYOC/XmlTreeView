@@ -23,29 +23,37 @@ namespace SAXWrapper {
 
     public class AttributeEntity {
 
-        #region -- プロパティ --
+        #region -- Private fields --
 
         private string attrName;
+
+        private string attrValue;
+
+        #endregion -- Private fields --
+
+        #region -- Setter --
 
         public void SetAttrName(string arg) {
             attrName = arg;
         }
 
-        public string GetAttrName() {
-            return attrName;
-        }
-
-        private string attrValue;
-
         public void SetAttrValue(string arg) {
             attrValue = arg;
+        }
+
+        #endregion -- Setter --
+
+        #region -- Getter --
+
+        public string GetAttrName() {
+            return attrName;
         }
 
         public string GetAttrValue() {
             return attrValue;
         }
 
-        #endregion -- プロパティ --
+        #endregion -- Getter --
 
         public AttributeEntity() {
         }

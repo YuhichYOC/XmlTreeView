@@ -26,19 +26,26 @@ using System.Text;
 namespace SAXWrapper {
 
     public class XWriter {
+
+        #region -- Private Fields --
+
         private NodeEntity node;
+
+        private string directory;
+
+        private string fileName;
+
+        #endregion -- Private Fields --
+
+        #region -- Setter --
 
         public void SetNode(NodeEntity arg) {
             node = arg;
         }
 
-        private string directory;
-
         public void SetDirectory(string arg) {
             directory = arg;
         }
-
-        private string fileName;
 
         public void SetFileName(string arg) {
             fileName = arg;
@@ -52,6 +59,10 @@ namespace SAXWrapper {
             node.SetWriterSetting(r.GetNode());
         }
 
+        #endregion -- Setter --
+
+        #region -- Public Methods --
+
         public void Write() {
             if (string.IsNullOrEmpty(directory)) {
                 throw new ArgumentException(@"Directory is not assigned.");
@@ -63,5 +74,7 @@ namespace SAXWrapper {
                 w.WriteLine(node.ToString());
             }
         }
+
+        #endregion -- Public Methods --
     }
 }
