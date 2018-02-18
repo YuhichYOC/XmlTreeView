@@ -113,12 +113,14 @@ namespace XmlTreeView {
         private void OpenFile() {
             OFWindow w = new OFWindow();
             w.ShowDialog();
-            string path = w.GetPath();
-            XReader reader = new XReader();
-            reader.SetDirectory(System.IO.Path.GetDirectoryName(path));
-            reader.SetFileName(System.IO.Path.GetFileName(path));
-            reader.Parse();
-            top.Tree(reader.GetNode());
+            if (w.Selected()) {
+                string path = w.GetPath();
+                XReader reader = new XReader();
+                reader.SetDirectory(System.IO.Path.GetDirectoryName(path));
+                reader.SetFileName(System.IO.Path.GetFileName(path));
+                reader.Parse();
+                top.Tree(reader.GetNode());
+            }
         }
 
         private void OpenFile(string arg) {
@@ -133,17 +135,19 @@ namespace XmlTreeView {
             SFWindow pw = new SFWindow();
             pw.ShowDialog();
             string path = pw.GetPath();
-            OFWindow sw = new OFWindow();
-            sw.ShowDialog();
-            string setting = sw.GetPath();
-            XWriter writer = new XWriter();
-            writer.SetNode((top.GetTree().Items[0] as XMLNode).GetNode());
-            writer.SetDirectory(System.IO.Path.GetDirectoryName(path));
-            writer.SetFileName(System.IO.Path.GetFileName(path));
-            if (!string.IsNullOrEmpty(setting)) {
-                writer.SetWriterSetting(setting);
+            if (pw.Selected()) {
+                OFWindow sw = new OFWindow();
+                sw.ShowDialog();
+                string setting = sw.GetPath();
+                XWriter writer = new XWriter();
+                writer.SetNode((top.GetTree().Items[0] as XMLNode).GetNode());
+                writer.SetDirectory(System.IO.Path.GetDirectoryName(path));
+                writer.SetFileName(System.IO.Path.GetFileName(path));
+                if (sw.Selected()) {
+                    writer.SetWriterSetting(setting);
+                }
+                writer.Write();
             }
-            writer.Write();
         }
 
         #endregion -- Private Methods --
@@ -259,10 +263,7 @@ namespace XmlTreeView {
                     addRow.TrySetMember(Column(0).GetBindName(), n.GetAttrName());
                     addRow.TrySetMember(Column(1).GetBindName(), n.GetAttrValue());
                     AddRow(addRow);
-                    AttributeEntity addAttr = new AttributeEntity();
-                    addAttr.SetAttrName(n.GetAttrName());
-                    addAttr.SetAttrValue(n.GetAttrValue());
-                    current.AddAttr(addAttr);
+                    current.AddAttr(n.GetAttrName(), n.GetAttrValue());
                 }
             }
 
@@ -313,9 +314,27 @@ namespace XmlTreeView {
                 }
             }
 
+            private void AddNode_Click(object sender, RoutedEventArgs e) {
+                try {
+                    XMLNode n = GetTree().SelectedItem as XMLNode;
+                    if (n == null) {
+                        return;
+                    }
+
+                    AddNode(n);
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
+                }
+            }
+
             #endregion -- Events --
 
             #region -- Public Methods --
+
+            public override void Prepare(TreeView arg) {
+                base.Prepare(arg);
+                PrepareContextMenu(arg);
+            }
 
             public override void Tree(NodeEntity arg) {
                 base.Tree(arg);
@@ -323,6 +342,34 @@ namespace XmlTreeView {
             }
 
             #endregion -- Public Methods --
+
+            #region -- Private Methods --
+
+            private void PrepareContextMenu(TreeView arg) {
+                ContextMenu m = arg.ContextMenu;
+
+                MenuItem add1 = new MenuItem();
+                add1.Name = @"Context_AddNode";
+                add1.Header = @"Add Node";
+                add1.Click += AddNode_Click;
+                m.Items.Add(add1);
+            }
+
+            private void AddNode(XMLNode arg) {
+                NewNode n = new NewNode();
+                n.ShowDialog();
+                if (n.AddNode()) {
+                    if (n.IsComment()) {
+                        arg.GetNode().AddComment();
+                    } else {
+                        arg.GetNode().AddChild(n.GetNodeName());
+                    }
+                    arg.GetNode().Refresh();
+                    Refresh(arg.GetNode().Root());
+                }
+            }
+
+            #endregion -- Private Methods --
         }
 
         #endregion -- Private Class : XMLTreeEx --

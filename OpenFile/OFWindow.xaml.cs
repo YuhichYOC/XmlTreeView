@@ -33,11 +33,30 @@ namespace OpenFile {
     /// OFWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class OFWindow : Window {
+
+        #region -- Private Fields --
+
         private string path;
+
+        private bool selected;
+
+        private OperatorEx gop;
+
+        private FileSystemTreeEx top;
+
+        #endregion -- Private Fields --
+
+        #region -- Getter --
 
         public string GetPath() {
             return path;
         }
+
+        public bool Selected() {
+            return selected;
+        }
+
+        #endregion -- Getter --
 
         public OFWindow() {
             InitializeComponent();
@@ -45,31 +64,7 @@ namespace OpenFile {
             Prepare();
         }
 
-        private OperatorEx gop;
-
-        private FileSystemTreeEx top;
-
-        private void Prepare() {
-            ListDrives();
-            gop = new OperatorEx();
-            gop.Prepare(grid);
-            gop.AddColumn(@"FileName", @"ファイル名");
-            gop.CreateColumns();
-            top = new FileSystemTreeEx();
-            top.Prepare(tree);
-            top.SetGrid(gop);
-            top.Tree(@"C:\");
-
-            drive.SelectionChanged += DriveChanged;
-            grid.SelectedCellsChanged += CellChanged;
-            button.Click += ButtonClick;
-        }
-
-        private void ListDrives() {
-            Environment.GetLogicalDrives().ToList().ForEach(v => {
-                drive.Items.Add(v);
-            });
-        }
+        #region -- Events --
 
         private void DriveChanged(object sender, SelectionChangedEventArgs e) {
             try {
@@ -97,13 +92,49 @@ namespace OpenFile {
         private void ButtonClick(object sender, RoutedEventArgs e) {
             try {
                 path = text.Text;
+                selected = true;
                 Close();
             } catch (Exception ex) {
                 Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
             }
         }
 
+        #endregion -- Events --
+
+        #region -- Private Methods --
+
+        private void Prepare() {
+            ListDrives();
+            gop = new OperatorEx();
+            gop.Prepare(grid);
+            gop.AddColumn(@"FileName", @"ファイル名");
+            gop.CreateColumns();
+            top = new FileSystemTreeEx();
+            top.Prepare(tree);
+            top.SetGrid(gop);
+            top.Tree(@"C:\");
+
+            drive.SelectionChanged += DriveChanged;
+            grid.SelectedCellsChanged += CellChanged;
+            button.Click += ButtonClick;
+
+            path = string.Empty;
+            selected = false;
+        }
+
+        private void ListDrives() {
+            Environment.GetLogicalDrives().ToList().ForEach(v => {
+                drive.Items.Add(v);
+            });
+        }
+
+        #endregion -- Private Methods --
+
+        #region -- Private Class : OperatorEx --
+
         private class OperatorEx : Operator {
+
+            #region -- Public Methods --
 
             public void DisplayDirectory(FileSystemNode arg) {
                 Blank();
@@ -118,6 +149,10 @@ namespace OpenFile {
                 Refresh();
             }
 
+            #endregion -- Public Methods --
+
+            #region -- Private Methods --
+
             private IEnumerable<string> TryGetFiles(string path) {
                 try {
                     return System.IO.Directory.EnumerateFiles(path);
@@ -125,19 +160,31 @@ namespace OpenFile {
                     return null;
                 }
             }
+
+            #endregion -- Private Methods --
         }
 
+        #endregion -- Private Class : OperatorEx --
+
+        #region -- Private Class : FileSystemTreeEx --
+
         private class FileSystemTreeEx : FileSystemTree {
+
+            #region -- Private Fields --
+
             private OperatorEx grid;
+
+            #endregion -- Private Fields --
+
+            #region -- Setter --
 
             public void SetGrid(OperatorEx arg) {
                 grid = arg;
             }
 
-            public new void Tree(string path) {
-                base.Tree(path);
-                GetTree().SelectedItemChanged += OnSelect;
-            }
+            #endregion -- Setter --
+
+            #region -- Events --
 
             private void OnSelect(object sender, RoutedEventArgs e) {
                 try {
@@ -148,6 +195,19 @@ namespace OpenFile {
                     Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
                 }
             }
+
+            #endregion -- Events --
+
+            #region -- Public Methods --
+
+            public new void Tree(string path) {
+                base.Tree(path);
+                GetTree().SelectedItemChanged += OnSelect;
+            }
+
+            #endregion -- Public Methods --
         }
+
+        #endregion -- Private Class : FileSystemTreeEx --
     }
 }

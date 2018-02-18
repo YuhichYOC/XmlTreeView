@@ -22,11 +22,18 @@
 namespace Logger {
 
     public class SimpleLogger {
+
+        #region -- Private Fields --
+
         private log4net.ILog log;
+
+        #endregion -- Private Fields --
 
         public SimpleLogger() {
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(@"./SaveLog.config"));
         }
+
+        #region -- Public Methods --
 
         public void Error(string arg) {
             log = log4net.LogManager.GetLogger(@"ErrorLog");
@@ -42,5 +49,7 @@ namespace Logger {
             log = log4net.LogManager.GetLogger(@"InfoLog");
             log.Info(arg);
         }
+
+        #endregion -- Public Methods --
     }
 }

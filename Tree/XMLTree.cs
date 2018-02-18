@@ -34,8 +34,6 @@ namespace Tree {
 
         #endregion -- Private Fields --
 
-
-
         #region -- Getter --
 
         public TreeView GetTree() {
@@ -53,7 +51,7 @@ namespace Tree {
 
         #region -- Public Methods --
 
-        public void Prepare(TreeView arg) {
+        public virtual void Prepare(TreeView arg) {
             tree = arg;
             PrepareMouseGesture(arg);
             PrepareContextMenu(arg);

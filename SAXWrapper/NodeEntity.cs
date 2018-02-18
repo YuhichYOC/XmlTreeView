@@ -91,6 +91,13 @@ namespace SAXWrapper {
             attrList.Add(arg);
         }
 
+        public void AddAttr(string name, string value) {
+            AttributeEntity addAttr = new AttributeEntity();
+            addAttr.SetAttrName(name);
+            addAttr.SetAttrValue(value);
+            attrList.Add(addAttr);
+        }
+
         public void SetParent(NodeEntity arg) {
             parent = arg;
         }
@@ -105,6 +112,22 @@ namespace SAXWrapper {
         public void AddChild(NodeEntity arg) {
             arg.SetParent(this);
             children.Add(arg);
+        }
+
+        public void AddChild(string name) {
+            NodeEntity addNode = new NodeEntity();
+            addNode.SetNodeName(name);
+            addNode.SetDepth(depth + 1);
+            addNode.Comment(false);
+            children.Add(addNode);
+        }
+
+        public void AddComment() {
+            NodeEntity addNode = new NodeEntity();
+            addNode.SetNodeName(@"Comment");
+            addNode.SetDepth(depth + 1);
+            addNode.Comment(true);
+            children.Add(addNode);
         }
 
         #region -- Writer --

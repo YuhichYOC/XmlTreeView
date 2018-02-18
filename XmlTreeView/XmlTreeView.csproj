@@ -61,6 +61,9 @@
     <Compile Include="NewAttribute.xaml.cs">
       <DependentUpon>NewAttribute.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NewNode.xaml.cs">
+      <DependentUpon>NewNode.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -125,6 +128,10 @@
     <Page Include="NewAttribute.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="NewNode.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View.xaml">
       <SubType>Designer</SubType>

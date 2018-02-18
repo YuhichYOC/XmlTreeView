@@ -26,6 +26,9 @@ using System.Text;
 namespace Logger {
 
     public class LogSpooler {
+
+        #region -- Private Fields --
+
         private log4net.ILog logClient;
 
         private System.Threading.Timer timer;
@@ -37,9 +40,15 @@ namespace Logger {
         private int ticks;
         private int safeTicks;
 
+        #endregion -- Private Fields --
+
+        #region -- Setter --
+
         public void SetSafe(int arg) {
             safeTicks = arg;
         }
+
+        #endregion -- Setter --
 
         public LogSpooler() {
             log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(@"./SaveLog.config"));
@@ -52,12 +61,9 @@ namespace Logger {
             safeTicks = 0;
         }
 
-        public void Start() {
-            System.Threading.TimerCallback callback = new System.Threading.TimerCallback(onUpdate);
-            timer = new System.Threading.Timer(callback, null, 1000, 1000);
-        }
+        #region -- Timer Tick --
 
-        private void onUpdate(object arg) {
+        private void OnUpdate(object arg) {
             FlushError();
             FlushWarn();
             FlushInfo();
@@ -68,6 +74,53 @@ namespace Logger {
                 Dispose();
             }
         }
+
+        #endregion -- Timer Tick --
+
+        #region -- Public Methods --
+
+        public void Start() {
+            System.Threading.TimerCallback callback = new System.Threading.TimerCallback(OnUpdate);
+            timer = new System.Threading.Timer(callback, null, 1000, 1000);
+        }
+
+        public void Dispose() {
+            timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+            FlushError();
+            FlushWarn();
+            FlushInfo();
+        }
+
+        public void AppendError(string message) {
+            try {
+                errorLogLines.Add(message);
+            } catch (Exception ex) {
+                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
+                logClient.Error(@"Exception during AppendError\r\n" + message, ex);
+            }
+        }
+
+        public void AppendWarn(string message) {
+            try {
+                warnLogLines.Add(message);
+            } catch (Exception ex) {
+                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
+                logClient.Error(@"Exception during AppendWarn\r\n" + message, ex);
+            }
+        }
+
+        public void AppendInfo(string message) {
+            try {
+                infoLogLines.Add(message);
+            } catch (Exception ex) {
+                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
+                logClient.Error(@"Exception during AppendInfo\r\n" + message, ex);
+            }
+        }
+
+        #endregion -- Public Methods --
+
+        #region -- Private Methods --
 
         private void FlushError() {
             if (errorLogLines.Count > 0) {
@@ -117,38 +170,6 @@ namespace Logger {
             }
         }
 
-        public void Dispose() {
-            timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-            FlushError();
-            FlushWarn();
-            FlushInfo();
-        }
-
-        public void AppendError(string message) {
-            try {
-                errorLogLines.Add(message);
-            } catch (Exception ex) {
-                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
-                logClient.Error(@"Exception during AppendError\r\n" + message, ex);
-            }
-        }
-
-        public void AppendWarn(string message) {
-            try {
-                warnLogLines.Add(message);
-            } catch (Exception ex) {
-                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
-                logClient.Error(@"Exception during AppendWarn\r\n" + message, ex);
-            }
-        }
-
-        public void AppendInfo(string message) {
-            try {
-                infoLogLines.Add(message);
-            } catch (Exception ex) {
-                logClient = log4net.LogManager.GetLogger(@"LogOperatorLog");
-                logClient.Error(@"Exception during AppendInfo\r\n" + message, ex);
-            }
-        }
+        #endregion -- Private Methods --
     }
 }

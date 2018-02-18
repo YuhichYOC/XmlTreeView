@@ -1,6 +1,6 @@
 ﻿/*
 *
-* NewAttribute.cs
+* NewNode.cs
 *
 * Copyright 2018 Yuichi Yoshii
 *     吉井雄一 @ 吉井産業  you.65535.kir@gmail.com
@@ -25,42 +25,42 @@ using System.Windows;
 namespace XmlTreeView {
 
     /// <summary>
-    /// NewAttribute.xaml の相互作用ロジック
+    /// NewNode.xaml の相互作用ロジック
     /// </summary>
-    public partial class NewAttribute : Window {
+    public partial class NewNode : Window {
 
         #region -- Private Fields --
 
-        private string attrName;
+        private string nodeName;
 
-        private string attrValue;
+        private bool isComment;
 
-        private bool addAttribute;
+        private bool addNode;
 
         #endregion -- Private Fields --
 
         #region -- Getter --
 
-        public string GetAttrName() {
-            return attrName;
+        public string GetNodeName() {
+            return nodeName;
         }
 
-        public string GetAttrValue() {
-            return attrValue;
+        public bool IsComment() {
+            return isComment;
         }
 
-        public bool AddAttribute() {
-            return addAttribute;
+        public bool AddNode() {
+            return addNode;
         }
 
         #endregion -- Getter --
 
-        public NewAttribute() {
+        public NewNode() {
             InitializeComponent();
 
-            attrName = string.Empty;
-            attrValue = string.Empty;
-            addAttribute = false;
+            nodeName = string.Empty;
+            isComment = false;
+            addNode = false;
 
             Cue.Click += Cue_Click;
         }
@@ -69,9 +69,9 @@ namespace XmlTreeView {
 
         private void Cue_Click(object sender, RoutedEventArgs e) {
             try {
-                attrName = AttrName.Text;
-                attrValue = AttrValue.Text;
-                addAttribute = true;
+                nodeName = NodeName.Text;
+                isComment = (bool)Comment.IsChecked;
+                addNode = true;
                 Close();
             } catch (Exception ex) {
                 Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);

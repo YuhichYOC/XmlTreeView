@@ -9,46 +9,46 @@
   Title="View"
   Height="700"
   Width="840">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition
         Height="23" />
-            <RowDefinition
+      <RowDefinition
         Height="1*" />
-            <RowDefinition
+      <RowDefinition
         Height="23" />
-        </Grid.RowDefinitions>
-        <Menu
+    </Grid.RowDefinitions>
+    <Menu
       Grid.Row="0">
-            <MenuItem
+      <MenuItem
         Header="Test"
         x:Name="menu" />
-            <MenuItem
+      <MenuItem
         Header="Write"
         x:Name="write" />
-        </Menu>
-        <Grid
+    </Menu>
+    <Grid
       Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <TreeView
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <TreeView
         Grid.Column="0"
         x:Name="tree" />
-            <GridSplitter
+      <GridSplitter
         Grid.Column="0"
         Width="5" />
-            <DataGrid
+      <DataGrid
         Grid.Column="1"
         x:Name="grid" />
-        </Grid>
-        <StatusBar
+    </Grid>
+    <StatusBar
       Grid.Row="2">
-            <TextBlock
+      <TextBlock
         x:Name="DropHere">
         Drop Here
-            </TextBlock>
-        </StatusBar>
-    </Grid>
+      </TextBlock>
+    </StatusBar>
+  </Grid>
 </Window>
